@@ -41,34 +41,5 @@ int main(int argc, char **argv)
 		printf("Received(%d): %d from %d\n", tid, msg[0], msg[1]);
 	} */
 
-
-	//rozsy³anie requestów
-	for (int i = 0; i<size; i++){
-		if (i != this->id){
-			this->msg[2] = 200;
-			MPI_Send(msg, 3, MPI_INT, i, MSG_TAG, MPI_COMM_WORLD);
-		}
-	}
-
-	//oczekiwanie odpowiedzi
-	for (int i = 1; i<size; i++){ //oczekuje na size-1 odpowiedzi
-		MPI_Recv(msg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		ReadAnswer(msg[0], msg[1], msg[2]);
-	}
-
-	//sprawdzenie tablicy priorytetów
-	bool czyMogeWejsc = true;
-	for (int i = 0; i<size; i++){
-		if (priorities[i] == 0){
-			czyMogeWejsc = false;
-			break;
-		}
-	}
-
-	//dostêp do MPC
-	if (czyMogeWejsc){
-		printf("Weszlem");
-	}
-
 	MPI::Finalize();
 }
