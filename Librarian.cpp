@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <list>
+#include <ctime>
+#include <cstdlib>
+#include <unistd.h>
 #include "MPC.cpp"
 #define ROOT 0
 #define MSG_TAG 100
@@ -11,21 +14,28 @@ using namespace std;
 
 class Librarian {
  
- public:
+ private:
  	int id;
 	int customersCount;
 	list<int> processesIds;
 	int priorities[]; //[0] brak zgody [1] wygrana walka [2] zezwolenie
         list<MPC> freeMPCs;
-	Librarian(int id, int size);	
+ public:
+	Librarian(int id, int size);
+	void setCustomersCount(int count);	
 };
 
 Librarian::Librarian(int id, int size){
          this->id = id;
 	 this->customersCount = size;
 	 this->priorities[size];
-	 this->priorities[id] = 1; //sam sobie zezwalam
+	 this->priorities[id] = 1; //sam sobie zezwalam 
 }
+
+void Librarian::setCustomersCount(int count) {
+	this->customersCount = count;	
+}
+
 
 void ReadAnswer(int id, int numbOfReaders, int answer){ 
 	printf("Metoda ReadAnswer()\n");
@@ -39,14 +49,21 @@ int main(int argc, char **argv)
 	int tid, size, len;
 	char processor[100];
 	MPI_Status status;
+	
 
 	MPI::Init(argc, argv);
 	size=MPI::COMM_WORLD.Get_size();
 	tid=MPI::COMM_WORLD.Get_rank();;
 	MPI::Get_processor_name(processor, len);
 
-	printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
+	srand(time(0));
+	int customersCount = rand()%tid + 7;
+	cout<<"Wylosowalem: " << customersCount<<endl;
 
+	Librarian librarian(tid, size);
+	librarian.setCustomersCount(customersCount);
+
+	printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 	
 	int msg[2]; //[0] id nadawcy [1] liczba zalegających czytelników [2] kod wiadomosci
 	if (tid == ROOT){
