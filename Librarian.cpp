@@ -15,7 +15,7 @@ class Librarian {
  	int id;
 	int customersCount;
 	list<int> processesIds;
-	int priorities[];
+	int priorities[]; //[0] brak zgody [1] wygrana walka [2] zezwolenie
         list<MPC> freeMPCs;
 	Librarian(int id, int size);	
 };
@@ -23,6 +23,8 @@ class Librarian {
 Librarian::Librarian(int id, int size){
          this->id = id;
 	 this->customersCount = size;
+	 this->priorities[size];
+	 this->priorities[id] = 1; //sam sobie zezwalam
 }
 
 void ReadAnswer(int id, int numbOfReaders, int answer){ 
@@ -46,7 +48,7 @@ int main(int argc, char **argv)
 	printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 
 	
-	int msg[2]; //[0] id nadawcy [1] kod wiadomosci
+	int msg[2]; //[0] id nadawcy [1] liczba zalegających czytelników [2] kod wiadomosci
 	if (tid == ROOT){
 		for(int i=1; i<size; i++){
 			msg[0] = 100;
