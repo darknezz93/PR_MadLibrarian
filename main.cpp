@@ -1,3 +1,16 @@
+#include <iostream>
+#include <mpi.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <list>
+#include <ctime>
+#include <cstdlib>
+#include <unistd.h>
+#include "MPC.cpp"
+#define ROOT 0
+#define MSG_TAG 100
+
+
 int main(int argc, char **argv)
 {
 	int tid, size, len;
