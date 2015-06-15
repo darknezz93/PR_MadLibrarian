@@ -15,12 +15,21 @@ class Librarian {
  	int id;
 	int customersCount;
 	list<int> processesIds;
+	int priorities[];
         list<MPC> freeMPCs;
-	Librarian(int id);	
+	Librarian(int id, int size);	
 };
 
-Librarian::Librarian(int id){
+Librarian::Librarian(int id, int size){
          this->id = id;
+	 this->customersCount = size;
+}
+
+void ReadAnswer(int id, int numbOfReaders, int answer){ 
+	printf("Metoda ReadAnswer()\n");
+	if(answer == 100){ // 100 - kod dla odpowiedzi "agree"
+		printf("heh");
+	}
 }
 
 int main(int argc, char **argv)
@@ -36,16 +45,17 @@ int main(int argc, char **argv)
 
 	printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 
-	int msg[2];
+	
+	int msg[2]; //[0] id nadawcy [1] kod wiadomosci
 	if (tid == ROOT){
 		for(int i=1; i<size; i++){
-			msg[0] = 101;
+			msg[0] = 100;
 			msg[1] = tid;
-			MPI_Send( msg, 1, MPI_INT, i, MSG_TAG, MPI_COMM_WORLD);
+			MPI_Send( msg, 2, MPI_INT, i, MSG_TAG, MPI_COMM_WORLD);
 			printf("ROOT wyslal!\n");
 		}
 	}else{
-		MPI_Recv( msg, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+		MPI_Recv( msg, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 		printf("Received(%d): %d from %d\n", tid, msg[0], msg[1]);
 	}
 
