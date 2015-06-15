@@ -27,8 +27,8 @@ int main(int argc, char **argv)
 
 	printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 
-	int msg[2]; //[0] id nadawcy [1] liczba zalegaj¹cych czytelników [2] kod wiadomosci
-	if (tid == ROOT){
+	int msg[3]; //[0] id nadawcy [1] liczba zalegaj¹cych czytelników [2] kod wiadomosci
+	/*if (tid == ROOT){
 		for (int i = 1; i<size; i++){
 			msg[0] = 100;
 			msg[1] = tid;
@@ -39,6 +39,35 @@ int main(int argc, char **argv)
 	else{
 		MPI_Recv(msg, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 		printf("Received(%d): %d from %d\n", tid, msg[0], msg[1]);
+	} */
+
+
+	//rozsy³anie requestów
+	for (int i = 0; i<size; i++){
+		if (i != this->id){
+			this->msg[2] = 200;
+			MPI_Send(msg, 3, MPI_INT, i, MSG_TAG, MPI_COMM_WORLD);
+		}
+	}
+
+	//oczekiwanie odpowiedzi
+	for (int i = 1; i<size; i++){ //oczekuje na size-1 odpowiedzi
+		MPI_Recv(msg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+		ReadAnswer(msg[0], msg[1], msg[2]);
+	}
+
+	//sprawdzenie tablicy priorytetów
+	bool czyMogeWejsc = true;
+	for (int i = 0; i<size; i++){
+		if (priorities[i] == 0){
+			czyMogeWejsc = false;
+			break;
+		}
+	}
+
+	//dostêp do MPC
+	if (czyMogeWejsc){
+		printf("Weszlem");
 	}
 
 	MPI::Finalize();
