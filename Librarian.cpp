@@ -26,10 +26,12 @@ class Librarian {
 };
 
 Librarian::Librarian(int id, int size){
+	 srand(time(0));
          this->id = id;
-	 this->customersCount = size;
+	 this->customersCount = rand()%id + 7;
 	 this->priorities[size];
-	 this->priorities[id] = 1; //sam sobie zezwalam 
+	 this->priorities[id] = 1; //sam sobie zezwalam
+	 cout<<"Librarian o id: "<<id<<" i liczbie klientow: "<<this->customersCount<<endl; 
 }
 
 void Librarian::setCustomersCount(int count) {
@@ -56,12 +58,7 @@ int main(int argc, char **argv)
 	tid=MPI::COMM_WORLD.Get_rank();;
 	MPI::Get_processor_name(processor, len);
 
-	srand(time(0));
-	int customersCount = rand()%tid + 7;
-	cout<<"Wylosowalem: " << customersCount<<endl;
-
 	Librarian librarian(tid, size);
-	librarian.setCustomersCount(customersCount);
 
 	printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 	
