@@ -38,7 +38,7 @@ Librarian::Librarian(int id, int size){
 	this->id = id;
 	this->size = size;
 	this->customersCount = rand()%(id+1) + 7;
-	for(int i  = 0; i < size+1; i++)
+	for(int i  = 0; i < size; i++)
 	{
 		 this->priorities[i] = 0;
 	}
@@ -101,22 +101,27 @@ void Librarian::accessMPC() {
 
 void Librarian::readAnswer(int id, int numbOfReaders, int answer){ 
 	//printf("Metoda ReadAnswer()\n");
+	printf("(%d | %d)Odpowiedz od: %d | %d | %d\n", this->id, this->customersCount, id, numbOfReaders, answer);
 	if (answer == 100){ // 100 - kod dla odpowiedzi "agree"
 		this->priorities[id] = 2; //2 - wartosc dla odpowiedzi "agree"
+		return;
 	}
-	else if (answer == 200 && numbOfReaders > this->customersCount){
+	if (answer == 200 and numbOfReaders > this->customersCount){
 		this->priorities[id] = 0; // 0 - brak zezwolenia (przegrana walka)
+		return;
 	}
-	else if (answer == 200 && numbOfReaders < this->customersCount){
+	if (answer == 200 and numbOfReaders < this->customersCount){
 		this->priorities[id] = 1; //1 - zezwolenie (wygrana walka)
+		return;
 	}
-	else if (answer == 200 && numbOfReaders == this->customersCount && this->id > id)
+	if (numbOfReaders == this->customersCount and id < this->id)
 	{
-		cout<<"Odpowiedz od: "<<id<<endl;
 		this->priorities[id] = 1;
+		return;
 	}
 	else{
 		this->priorities[id] = 0;
+		return;
 	}
 }
 

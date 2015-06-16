@@ -27,27 +27,12 @@ int main(int argc, char **argv)
 
 	printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 
-	//int msg[3]; 
 	
 	L1->sendRequests();
 	L1->waitForAnswears();
 	L1->canEnter();
 	L1->accessMPC();
 	
-	
-	//[0] id nadawcy [1] liczba zalegaj¹cych czytelników [2] kod wiadomosci
-	/*if (tid == ROOT){
-		for (int i = 1; i<size; i++){
-			msg[0] = 100;
-			msg[1] = tid;
-			MPI_Send(msg, 2, MPI_INT, i, MSG_TAG, MPI_COMM_WORLD);
-			printf("ROOT wyslal!\n");
-		}
-	}
-	else{
-		MPI_Recv(msg, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		printf("Received(%d): %d from %d\n", tid, msg[0], msg[1]);
-	} */
 
 	MPI::Finalize();
 }
