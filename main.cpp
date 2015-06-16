@@ -23,11 +23,19 @@ int main(int argc, char **argv)
 	tid = MPI::COMM_WORLD.Get_rank();;
 	MPI::Get_processor_name(processor, len);
 
-	Librarian librarian(tid, size);
+	Librarian L1 = Librarian(tid, size);
 
 	printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 
-	int msg[3]; //[0] id nadawcy [1] liczba zalegaj¹cych czytelników [2] kod wiadomosci
+	int msg[3]; 
+	
+	L1.sendRequests();
+	L1.waitForAnswears();
+	L1.canEnter();
+	L1.accessMPC();
+	
+	
+	//[0] id nadawcy [1] liczba zalegaj¹cych czytelników [2] kod wiadomosci
 	/*if (tid == ROOT){
 		for (int i = 1; i<size; i++){
 			msg[0] = 100;

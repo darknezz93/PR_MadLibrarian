@@ -38,7 +38,7 @@ Librarian::Librarian(int id, int size){
 	 srand(time(0));
      this->id = id;
 	 this->size = size;
-	 this->customersCount = rand()%id + 7;
+	 this->customersCount = rand()%(id+1) + 7;
 	 this->priorities[size];
 	 this->priorities[id] = 1; //sam sobie zezwalam
 	 this->msg[0] = id;
@@ -81,7 +81,9 @@ void Librarian::waitForAnswears() {
 void Librarian::accessMPC() {
 	//dostêp do MPC
 	if (this->czyMogeWejsc){
-		printf("Weszlem");
+		printf("Weszlem(%d)\n", this->id);
+	}else{
+		printf("Nie weszlem(%d)\n", this->id);
 	}
 }
 
