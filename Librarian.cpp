@@ -85,6 +85,10 @@ void Librarian::accessMPC() {
 	}else{
 		printf("Nie weszlem(%d)\n", this->id);
 	}
+	for(int i=0; i<this->size; i++)
+	{
+		printf("(%d) %d\n", this->id, this->priorities[i]);
+	}
 }
 
 
