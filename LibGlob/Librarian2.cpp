@@ -19,16 +19,16 @@ using namespace std;
 	int customersCount;
 	int msg[3];
 	int mpcTab[NUMB_OF_MPC];
-
+	int priorities[100]; //tablica procesow
 	list<int> processesIds;
 	
 	bool czyMogeWejsc;
 
-	void readAnswer(int id, int numOfReaders, int answer, int prio[]);
+	void readAnswer(int id, int numOfReaders, int answer);
 	
 	
 
-void create(int id, int size, int priorities[], char maszyna[]){
+void create(int id, int size, char maszyna[]){
 	srand(time(0));
 	tid = id;
 	size = size;
@@ -57,7 +57,7 @@ void sendRequests() {
 	}
 }
 
-void canEnter(int priorities[]) {
+void canEnter() {
 	//sprawdzenie tablicy priorytetów
 	//printf("canEnter\n");
 	czyMogeWejsc = true;
@@ -69,18 +69,18 @@ void canEnter(int priorities[]) {
 	}
 }
 
-void waitForAnswears(int prio[]) {
+void waitForAnswears() {
 	//oczekiwanie odpowiedzi
 	for (int i = 1; i<size; i++){ //oczekuje na size-1 odpowiedzi
 		MPI_Status status;
 		MPI_Recv(msg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		readAnswer(msg[0], msg[1], msg[2], prio);
+		readAnswer(msg[0], msg[1], msg[2]);
 	}
 }
 
 //int test;
 
-void accessMPC(int priorities[]) {
+void accessMPC() {
 	//dostêp do MPC
 	if (czyMogeWejsc){
 		printf("Wszedlem(%d)--------------------------------------\n", tid);
@@ -97,7 +97,7 @@ void accessMPC(int priorities[]) {
 
 
 
-void readAnswer(int id, int numbOfReaders, int answer, int priorities[]){ 
+void readAnswer(int id, int numbOfReaders, int answer){ 
 	//printf("Metoda ReadAnswer()\n");
 	//printf("(%d | %d)Odpowiedz od: %d | %d | %d\n", tid, customersCount, id, numbOfReaders, answer);
 	if (answer == 100){ // 100 - kod dla odpowiedzi "agree"
@@ -149,15 +149,15 @@ int main(int argc, char **argv)
 	pthread_create(&handler, NULL, listener, NULL);
 	sleep(1);
 
-	int priorities[size]; //0 - brak zgody 1 - wygrana walka 2 - zezwolenie
-	create(tid, size, priorities, processor);
+	//int priorities[size]; //0 - brak zgody 1 - wygrana walka 2 - zezwolenie
+	create(tid, size, processor);
 	//printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 	
 	sendRequests();
-	waitForAnswears(priorities);
+	waitForAnswears();
 	//for(int i=0; i<size; i++){ printf("%d ", priorities[i]); printf("[%d]\n", tid); }
-	canEnter(priorities);
-	accessMPC(priorities);
+	canEnter();
+	accessMPC();
 	//printf("%d -- %d\n", tid, test);
 
 	MPI::Finalize();
