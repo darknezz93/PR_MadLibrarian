@@ -29,7 +29,7 @@ class Librarian {
 	void sendRequests();
 	void canEnter();
 	void waitForAnswears();
-	void readAnswears(int id, int numOfReaders, int answer);
+	void readAnswer(int id, int numOfReaders, int answer);
 	void accessMPC();
 
 };
@@ -60,7 +60,7 @@ void Librarian::sendRequests() {
 
 void Librarian::canEnter() {
 	//sprawdzenie tablicy priorytetów
-	bool this->czyMogeWejsc = true;
+	this->czyMogeWejsc = true;
 	for (int i = 0; i<this->size; i++){
 		if (this->priorities[i] == 0){
 			this->czyMogeWejsc = false;
@@ -74,7 +74,7 @@ void Librarian::waitForAnswears() {
 	for (int i = 1; i<this->size; i++){ //oczekuje na size-1 odpowiedzi
 		MPI_Status status;
 		MPI_Recv(msg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		ReadAnswer(this->msg[0], this->msg[1], this->msg[2]);
+		readAnswer(this->msg[0], this->msg[1], this->msg[2]);
 	}
 }
 
