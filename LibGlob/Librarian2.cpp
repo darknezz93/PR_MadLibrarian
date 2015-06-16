@@ -30,7 +30,7 @@ using namespace std;
 	//void accessMPC(int prio[]);
 	
 
-void create(int id, int size, int priorities[]){
+void create(int id, int size, int priorities[], char maszyna[]){
 	srand(time(0));
 	tid = id;
 	size = size;
@@ -45,7 +45,8 @@ void create(int id, int size, int priorities[]){
 	msg[0] = id;
 	msg[1] = customersCount;
 	czyMogeWejsc = false;
-	cout<<"Librarian o id: "<<id<<" i liczbie klientow: "<<customersCount<<endl; 
+	printf("(%s)Librarian o id: %d i licznie klientow: %d\n", maszyna, id, customersCount);
+	//cout<<"Librarian o id: "<<id<<" i liczbie klientow: "<<customersCount<<endl; 
 }
 
 
@@ -137,7 +138,7 @@ int main(int argc, char **argv)
 	MPI::Get_processor_name(processor, len);
 	
 	int priorities[size];
-	create(tid, size, priorities);
+	create(tid, size, priorities, processor);
 	//printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 	
 	sendRequests();
