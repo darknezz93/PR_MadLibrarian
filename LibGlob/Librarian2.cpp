@@ -12,7 +12,7 @@
 
 using namespace std;
 
- 	int id;
+ 	int tid;
 	int size;
 	int customersCount;
 	int msg[3];
@@ -31,28 +31,28 @@ using namespace std;
 
 void create(int id, int size){
 	srand(time(0));
-	id = id;
+	tid = id;
 	size = size;
-	this->customersCount = rand()%(id+1) + 7;
+	customersCount = rand()%(id+1) + 7;
 	for(int i  = 0; i < size+1; i++)
 	{
-		 this->priorities[i] = 0;
+		 priorities[i] = 0;
 	}
 
 	// this->priorities[];
-	this->priorities[id] = 1; //sam sobie zezwalam
-	this->msg[0] = id;
-	this->msg[1] = this->customersCount;
-	this->czyMogeWejsc = false;
-	cout<<"Librarian o id: "<<id<<" i liczbie klientow: "<<this->customersCount<<endl; 
+	priorities[id] = 1; //sam sobie zezwalam
+	msg[0] = id;
+	msg[1] = customersCount;
+	czyMogeWejsc = false;
+	cout<<"Librarian o id: "<<id<<" i liczbie klientow: "<<customersCount<<endl; 
 }
 
 
 void sendRequests() {
 	//rozsy³anie requestów
-	for (int i = 0; i<this->size; i++){
-		if (i != this->id){
-			this->msg[2] = 200;
+	for (int i = 0; i<size; i++){
+		if (i != tid){
+			msg[2] = 200;
 			MPI_Send(msg, 3, MPI_INT, i, MSG_TAG, MPI_COMM_WORLD);
 		}
 	}
@@ -60,10 +60,10 @@ void sendRequests() {
 
 void canEnter() {
 	//sprawdzenie tablicy priorytetów
-	this->czyMogeWejsc = true;
-	for (int i = 0; i<this->size; i++){
-		if (this->priorities[i] == 0){
-			this->czyMogeWejsc = false;
+	czyMogeWejsc = true;
+	for (int i = 0; i<size; i++){
+		if (priorities[i] == 0){
+			czyMogeWejsc = false;
 			break;
 		}
 	}
@@ -71,24 +71,24 @@ void canEnter() {
 
 void waitForAnswears() {
 	//oczekiwanie odpowiedzi
-	for (int i = 1; i<this->size; i++){ //oczekuje na size-1 odpowiedzi
+	for (int i = 1; i<size; i++){ //oczekuje na size-1 odpowiedzi
 		MPI_Status status;
 		MPI_Recv(msg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		this->readAnswer(this->msg[0], this->msg[1], this->msg[2]);
+		readAnswer(msg[0], msg[1], msg[2]);
 	}
 }
 
 void accessMPC() {
 	//dostêp do MPC
-	if (this->czyMogeWejsc){
-		printf("Weszlem(%d)--------------------------------------\n", this->id);
+	if (czyMogeWejsc){
+		printf("Weszlem(%d)--------------------------------------\n", tid);
 	}else{
-		printf("Nie weszlem(%d)\n", this->id);
+		printf("Nie weszlem(%d)\n", tid);
 	}
-	printf("(%d): ", this->id);
-	for(int i=0; i<this->size; i++)
+	printf("(%d): ", tid);
+	for(int i=0; i<size; i++)
 	{
-		printf(" %d", this->priorities[i]);
+		printf(" %d", priorities[i]);
 	}
 	cout<<endl;
 }
@@ -97,26 +97,26 @@ void accessMPC() {
 
 void readAnswer(int id, int numbOfReaders, int answer){ 
 	//printf("Metoda ReadAnswer()\n");
-	printf("(%d | %d)Odpowiedz od: %d | %d | %d\n", this->id, this->customersCount, id, numbOfReaders, answer);
+	printf("(%d | %d)Odpowiedz od: %d | %d | %d\n", tid, customersCount, id, numbOfReaders, answer);
 	if (answer == 100){ // 100 - kod dla odpowiedzi "agree"
-		this->priorities[id] = 2; //2 - wartosc dla odpowiedzi "agree"
+		priorities[id] = 2; //2 - wartosc dla odpowiedzi "agree"
 		return;
 	}
-	if (answer == 200 and numbOfReaders > this->customersCount){
-		this->priorities[id] = 0; // 0 - brak zezwolenia (przegrana walka)
+	if (answer == 200 and numbOfReaders > customersCount){
+		priorities[id] = 0; // 0 - brak zezwolenia (przegrana walka)
 		return;
 	}
-	if (answer == 200 and numbOfReaders < this->customersCount){
-		this->priorities[id] = 1; //1 - zezwolenie (wygrana walka)
+	if (answer == 200 and numbOfReaders < customersCount){
+		priorities[id] = 1; //1 - zezwolenie (wygrana walka)
 		return;
 	}
-	if (numbOfReaders == this->customersCount and id < this->id)
+	if (numbOfReaders == customersCount and tid < id)
 	{
-		this->priorities[id] = 1;
+		priorities[id] = 1;
 		return;
 	}
 	else{
-		this->priorities[id] = 0;
+		priorities[id] = 0;
 		return;
 	}
 }
