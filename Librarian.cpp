@@ -74,7 +74,7 @@ void Librarian::waitForAnswears() {
 	for (int i = 1; i<this->size; i++){ //oczekuje na size-1 odpowiedzi
 		MPI_Status status;
 		MPI_Recv(msg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		readAnswer(this->msg[0], this->msg[1], this->msg[2]);
+		this->readAnswer(this->msg[0], this->msg[1], this->msg[2]);
 	}
 }
 
@@ -88,9 +88,21 @@ void Librarian::accessMPC() {
 
 
 void Librarian::readAnswer(int id, int numbOfReaders, int answer){ 
-	printf("Metoda ReadAnswer()\n");
-	if(answer == 100){ // 100 - kod dla odpowiedzi "agree"
-		printf("heh");
+	//printf("Metoda ReadAnswer()\n");
+	if (answer == 100){ // 100 - kod dla odpowiedzi "agree"
+		this->priorities[id] = 2; //2 - wartosc dla odpowiedzi "agree"
+	}
+	else if (answer == 200 && numbOfReaders > this->customersCount){
+		this->priorities[id] = 0; // 0 - brak zezwolenia (przegrana walka)
+	}
+	else if (answer == 200 && numbOfReaders < this->customersCount){
+		this->priorities[id] = 1; //1 - zezwolenie (wygrana walka)
+	}
+	else if (answer == 200 && numbOfReaders == this->customersCount && this->id > id){
+		this->priorities[id] = 1;
+	}
+	else{
+		this->priorities[id] = 0;
 	}
 }
 
