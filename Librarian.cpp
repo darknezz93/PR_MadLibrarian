@@ -18,12 +18,11 @@ class Librarian {
  	int id;
 	int size;
 	int customersCount;
-	int msg[2];
+	int msg[3];
 	list<int> processesIds;
 	int priorities[]; //[0] brak zgody [1] wygrana walka [2] zezwolenie
-    list<MPC> freeMPCs;
+        list<MPC> freeMPCs;
 	bool czyMogeWejsc;
-
  public:
 	Librarian(int id, int size);	
 	void sendRequests();
@@ -39,7 +38,12 @@ Librarian::Librarian(int id, int size){
      this->id = id;
 	 this->size = size;
 	 this->customersCount = rand()%(id+1) + 7;
-	 this->priorities[size];
+	 for(int i  = 0; i < size; i++)
+	 {
+		 this->priorities[i] = 0;
+	 }
+
+	// this->priorities[];
 	 this->priorities[id] = 1; //sam sobie zezwalam
 	 this->msg[0] = id;
 	 this->msg[1] = this->customersCount;
