@@ -6,10 +6,11 @@
 #include <ctime>
 #include <cstdlib>
 #include <unistd.h>
+#include <pthread.h>
 
 #define ROOT 0
 #define MSG_TAG 100
-#define NUMB_OF_LIBR 5
+#define NUMB_OF_MPC 3
 
 using namespace std;
 
@@ -17,17 +18,14 @@ using namespace std;
 	int size;
 	int customersCount;
 	int msg[3];
+	int mpcTab[NUMB_OF_MPC];
+
 	list<int> processesIds;
-	//int priorities[NUMB_OF_LIBR]; //[0] brak zgody [1] wygrana walka [2] zezwolenie
-    	//list<MPC> freeMPCs;
+	
 	bool czyMogeWejsc;
 
-	//void create(int id, int size, int priorities);	
-	//void sendRequests();
-	//void canEnter();
-	//void waitForAnswears();
 	void readAnswer(int id, int numOfReaders, int answer, int prio[]);
-	//void accessMPC(int prio[]);
+	
 	
 
 void create(int id, int size, int priorities[], char maszyna[]){
@@ -40,7 +38,6 @@ void create(int id, int size, int priorities[], char maszyna[]){
 		 priorities[i] = 0;
 	}
 
-	// this->priorities[];
 	priorities[id] = 1; //sam sobie zezwalam
 	msg[0] = id;
 	msg[1] = customersCount;
@@ -81,12 +78,14 @@ void waitForAnswears(int prio[]) {
 	}
 }
 
+//int test;
+
 void accessMPC(int priorities[]) {
 	//dostêp do MPC
 	if (czyMogeWejsc){
-		printf("Weszlem(%d)--------------------------------------\n", tid);
+		printf("Wszedlem(%d)--------------------------------------\n", tid);
 	}else{
-		printf("Nie weszlem(%d)\n", tid);
+		printf("Nie wszedlem(%d)\n", tid);
 	}
 	printf("(%d): ", tid);
 	for(int i=0; i<size; i++)
@@ -125,9 +124,18 @@ void readAnswer(int id, int numbOfReaders, int answer, int priorities[]){
 }
 
 
+void *listener(void *)
+{
+	//int x = (int) *test;
+	printf("Watek(%d)\n", tid);
+	
+	pthread_exit(NULL);
+}
+
 int main(int argc, char **argv)
 {
-	int  len;
+	int len;
+	int test = 2;
 	char processor[100];
 
 	//MPI_Status status;
@@ -137,7 +145,11 @@ int main(int argc, char **argv)
 	tid = MPI::COMM_WORLD.Get_rank();
 	MPI::Get_processor_name(processor, len);
 	
-	int priorities[size];
+	pthread_t handler;
+	pthread_create(&handler, NULL, listener, NULL);
+	sleep(1);
+
+	int priorities[size]; //0 - brak zgody 1 - wygrana walka 2 - zezwolenie
 	create(tid, size, priorities, processor);
 	//printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 	
@@ -146,7 +158,7 @@ int main(int argc, char **argv)
 	//for(int i=0; i<size; i++){ printf("%d ", priorities[i]); printf("[%d]\n", tid); }
 	canEnter(priorities);
 	accessMPC(priorities);
-	
+	//printf("%d -- %d\n", tid, test);
 
 	MPI::Finalize();
 }
