@@ -34,21 +34,21 @@ class Librarian {
 };
 
 Librarian::Librarian(int id, int size){
-	 srand(time(0));
-     this->id = id;
-	 this->size = size;
-	 this->customersCount = rand()%(id+1) + 7;
-	 for(int i  = 0; i < size; i++)
-	 {
+	srand(time(0));
+	this->id = id;
+	this->size = size;
+	this->customersCount = rand()%(id+1) + 7;
+	for(int i  = 0; i < size+1; i++)
+	{
 		 this->priorities[i] = 0;
-	 }
+	}
 
 	// this->priorities[];
-	 this->priorities[id] = 1; //sam sobie zezwalam
-	 this->msg[0] = id;
-	 this->msg[1] = this->customersCount;
-	 this->czyMogeWejsc = false;
-	 cout<<"Librarian o id: "<<id<<" i liczbie klientow: "<<this->customersCount<<endl; 
+	this->priorities[id] = 1; //sam sobie zezwalam
+	this->msg[0] = id;
+	this->msg[1] = this->customersCount;
+	this->czyMogeWejsc = false;
+	cout<<"Librarian o id: "<<id<<" i liczbie klientow: "<<this->customersCount<<endl; 
 }
 
 
@@ -85,14 +85,16 @@ void Librarian::waitForAnswears() {
 void Librarian::accessMPC() {
 	//dostêp do MPC
 	if (this->czyMogeWejsc){
-		printf("Weszlem(%d)\n", this->id);
+		printf("Weszlem(%d)--------------------------------------\n", this->id);
 	}else{
 		printf("Nie weszlem(%d)\n", this->id);
 	}
+	printf("(%d): ", this->id);
 	for(int i=0; i<this->size; i++)
 	{
-		printf("(%d) %d\n", this->id, this->priorities[i]);
+		printf(" %d", this->priorities[i]);
 	}
+	cout<<endl;
 }
 
 
@@ -108,12 +110,13 @@ void Librarian::readAnswer(int id, int numbOfReaders, int answer){
 	else if (answer == 200 && numbOfReaders < this->customersCount){
 		this->priorities[id] = 1; //1 - zezwolenie (wygrana walka)
 	}
-	else if (answer == 200 && numbOfReaders == this->customersCount && this->id > id){
+	else if (answer == 200 && numbOfReaders == this->customersCount && this->id > id)
+	{
+		cout<<"Odpowiedz od: "<<id<<endl;
 		this->priorities[id] = 1;
 	}
 	else{
 		this->priorities[id] = 0;
 	}
 }
-
 

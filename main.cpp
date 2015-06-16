@@ -15,24 +15,24 @@ int main(int argc, char **argv)
 {
 	int tid, size, len;
 	char processor[100];
-	MPI_Status status;
+	//MPI_Status status;
 
 
 	MPI::Init(argc, argv);
 	size = MPI::COMM_WORLD.Get_size();
-	tid = MPI::COMM_WORLD.Get_rank();;
+	tid = MPI::COMM_WORLD.Get_rank();
 	MPI::Get_processor_name(processor, len);
 
-	Librarian L1 = Librarian(tid, size);
+	Librarian *L1 = new Librarian(tid, size);
 
 	printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 
-	int msg[3]; 
+	//int msg[3]; 
 	
-	L1.sendRequests();
-	L1.waitForAnswears();
-	L1.canEnter();
-	L1.accessMPC();
+	L1->sendRequests();
+	L1->waitForAnswears();
+	L1->canEnter();
+	L1->accessMPC();
 	
 	
 	//[0] id nadawcy [1] liczba zalegaj¹cych czytelników [2] kod wiadomosci
