@@ -71,7 +71,7 @@ void canEnter() {
 
 void waitForAnswears() {
 	//oczekiwanie odpowiedzi
-	for (int i = 1; i<size; i++){ //oczekuje na size-1 odpowiedzi
+	for (int it = 1; it<size; it++){ //oczekuje na size-1 odpowiedzi
 		MPI_Status status;
 		MPI_Recv(msg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 		readAnswer(msg[0], msg[1], msg[2]);
@@ -123,19 +123,20 @@ void readAnswer(int id, int numbOfReaders, int answer){
 	}
 }
 
+bool canContinue = false;
 
 void *listener(void *)
 {
 	//int x = (int) *test;
 	printf("Watek(%d)\n", tid);
-	
+	waitForAnswears();
+	canContinue = true;
 	pthread_exit(NULL);
 }
 
 int main(int argc, char **argv)
 {
 	int len;
-	int test = 2;
 	char processor[100];
 
 	//MPI_Status status;
@@ -146,19 +147,26 @@ int main(int argc, char **argv)
 	MPI::Get_processor_name(processor, len);
 	
 	pthread_t handler;
-	pthread_create(&handler, NULL, listener, NULL);
-	sleep(1);
+	//pthread_create(&handler, NULL, listener, NULL);
+	
 
 	//int priorities[size]; //0 - brak zgody 1 - wygrana walka 2 - zezwolenie
 	create(tid, size, processor);
 	//printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 	
 	sendRequests();
-	waitForAnswears();
+	//waitForAnswears();
 	//for(int i=0; i<size; i++){ printf("%d ", priorities[i]); printf("[%d]\n", tid); }
+	pthread_create(&handler, NULL, listener, NULL);
+
+	while(!canContinue){
+		
+	}
 	canEnter();
 	accessMPC();
 	//printf("%d -- %d\n", tid, test);
 
+	pthread_cancel(handler);
+	
 	MPI::Finalize();
 }
