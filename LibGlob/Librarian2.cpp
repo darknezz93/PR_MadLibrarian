@@ -20,29 +20,29 @@ using namespace std;
 	int msg[3];
 	int mpcTab[NUMB_OF_MPC];
 	int priorities[100]; //tablica procesow
+	char processor[100];
 	list<int> processesIds;
 	
 	bool czyMogeWejsc;
+	int changeStateEnable; // 
+	int sleeping; // czy ubiegamy sie o sesje
 
 	void readAnswer(int id, int numOfReaders, int answer);
 	
 	
 
-void create(int id, int size, char maszyna[]){
+void create(){
 	srand(time(0));
-	tid = id;
-	size = size;
-	customersCount = rand()%(id+1) + 7;
+	customersCount = rand()%(tid+1) + 7;
 	for(int i  = 0; i < size+1; i++)
 	{
 		 priorities[i] = 0;
 	}
-
-	priorities[id] = 1; //sam sobie zezwalam
-	msg[0] = id;
+	priorities[tid] = 1; //sam sobie zezwalam
+	msg[0] = tid;
 	msg[1] = customersCount;
 	czyMogeWejsc = false;
-	printf("(%s)Librarian o id: %d i licznie klientow: %d\n", maszyna, id, customersCount);
+	printf("(%s)Librarian o id: %d i liczbie klientow: %d\n", processor, tid, customersCount);
 	//cout<<"Librarian o id: "<<id<<" i liczbie klientow: "<<customersCount<<endl; 
 }
 
@@ -137,21 +137,22 @@ void *listener(void *)
 int main(int argc, char **argv)
 {
 	int len;
-	char processor[100];
 
 	//MPI_Status status;
 
 	MPI::Init(argc, argv);
 	size = MPI::COMM_WORLD.Get_size();
 	tid = MPI::COMM_WORLD.Get_rank();
-	MPI::Get_processor_name(processor, len);
+	MPI::Get_processor_name(processor, len);	
+	
+	//printf("(%s)Librarian o id: %d i licznie klientow: %d\n", processor, tid, customersCount);
 	
 	pthread_t handler;
 	//pthread_create(&handler, NULL, listener, NULL);
 	
 
 	//int priorities[size]; //0 - brak zgody 1 - wygrana walka 2 - zezwolenie
-	create(tid, size, processor);
+	create();
 	//printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
 	
 	sendRequests();
