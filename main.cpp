@@ -24,17 +24,19 @@ int main(int argc, char **argv)
 
 	Librarian *L1 = new Librarian(tid, size);
 
-	printf("Hello! My name is %s (%d of %d), clients: %d\n", processor, tid, size, L1->getCustomersCount());
+	printf("Hello! My name is %s (%d of %d), clients: %d, active: %d\n", processor, tid, size, L1->getCustomersCount(),L1->isActive());
 
 	/*Technician  *tech = new Technician(tid);
 	printf("Technician, capacity: %d\n", tech->capacity); */
 	sleep(1);
 
-	
-	L1->sendRequests();
-	L1->waitForAnswears();
-	L1->canEnter();
-	L1->accessMPC(); 
+
+	L1->notifyAboutActivity();
+	L1->gatherActiveProcesses();
+	//L1->sendRequests();
+	//L1->waitForAnswears();
+	//L1->canEnter();
+	//L1->accessMPC(); 
 	
 
 	MPI::Finalize();

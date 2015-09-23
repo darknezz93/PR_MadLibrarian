@@ -9,12 +9,17 @@ class MPC {
   	int id;
 	bool free;
 	
-	MPC(int id);
+	MPC();
+	void setId(int id);
 };
 
-MPC::MPC(int id) {
-	this->id = id;
+
+MPC::MPC() {
 	this->free = true;
+}
+
+void MPC::setId(int id) {
+	this->id = id;
 }
 
 
