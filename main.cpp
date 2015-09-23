@@ -17,7 +17,6 @@ int main(int argc, char **argv)
 	char processor[100];
 	//MPI_Status status;
 
-
 	MPI::Init(argc, argv);
 	size = MPI::COMM_WORLD.Get_size();
 	tid = MPI::COMM_WORLD.Get_rank();
@@ -25,13 +24,17 @@ int main(int argc, char **argv)
 
 	Librarian *L1 = new Librarian(tid, size);
 
-	printf("Hello! My name is %s (%d of %d)\n", processor, tid, size);
+	printf("Hello! My name is %s (%d of %d), clients: %d\n", processor, tid, size, L1->getCustomersCount());
+
+	/*Technician  *tech = new Technician(tid);
+	printf("Technician, capacity: %d\n", tech->capacity); */
+	sleep(1);
 
 	
 	L1->sendRequests();
 	L1->waitForAnswears();
 	L1->canEnter();
-	L1->accessMPC();
+	L1->accessMPC(); 
 	
 
 	MPI::Finalize();

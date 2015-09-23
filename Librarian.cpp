@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <unistd.h>
 #include "MPC.cpp"
+#include "Technician.cpp"
 #define ROOT 0
 #define MSG_TAG 100
 
@@ -30,8 +31,13 @@ class Librarian {
 	void waitForAnswears();
 	void readAnswer(int id, int numOfReaders, int answer);
 	void accessMPC();
+	int getCustomersCount();
 
 };
+
+int Librarian::getCustomersCount() {
+	return this->customersCount;
+}
 
 Librarian::Librarian(int id, int size){
 	srand(time(0));
@@ -48,7 +54,7 @@ Librarian::Librarian(int id, int size){
 	this->msg[0] = id;
 	this->msg[1] = this->customersCount;
 	this->czyMogeWejsc = false;
-	cout<<"Librarian o id: "<<id<<" i liczbie klientow: "<<this->customersCount<<endl; 
+	//cout<<"Librarian o id: "<<id<<" i liczbie klientow: "<<this->customersCount<<endl;
 }
 
 
