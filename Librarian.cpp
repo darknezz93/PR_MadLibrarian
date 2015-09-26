@@ -28,7 +28,8 @@ class Librarian {
 	list<int> processesIds;
 	int priorities[]; //[0] brak zgody [1] wygrana walka [2] zezwolenie
     //vector<MPC*> mpcArray;
-    vector<MPC> mpcArray;
+    vector<MPC> mpcVector;
+    MPC mpcArray[NUMB_OF_MPC];
 	bool czyMogeWejsc;
 	bool active; // czy ubiegam się o dostęp do MPC
 	vector<int> activeLibrarians;
@@ -80,14 +81,18 @@ Librarian::Librarian(int id, int size){
 	//activeLibrarians.reserve(size);
 
 	for(int i = 0 ; i < NUMB_OF_MPC; i++) {
-		mpcArray.push_back(MPC(i, true, 0));
+		mpcArray[i] = MPC(i, true, 0);
+	}
+
+	for(int i = 0 ; i < NUMB_OF_MPC; i++) {
+		mpcVector.push_back(MPC(i, true, 0));
 	}
 
 	for(int i = 0; i < 2; i++){
 		tempState[i] = 0;
 	}
 
-	cout<<"mpcArray size: "<<mpcArray.size()<<endl;
+	//cout<<"mpcArray size: "<<mpcArray.size()<<endl;
 
 	this->msg[0] = id;
 	this->msg[1] = this->customersCount;
@@ -104,7 +109,7 @@ Librarian::Librarian(int id, int size){
 void Librarian::notifyAboutActivity() {
 
 	//printf("%d", mpcArray.at(0).id);
-	cout<<"Notify MPC Array size:"<<mpcArray.size()<<endl;
+	//cout<<"Notify MPC Array size:"<<mpcArray.size()<<endl;
 	if(this->active) {
 		this->activeLibrarians.at(this->id) = 1;
 	}
@@ -129,7 +134,7 @@ void Librarian::notifyAboutActivity() {
 }
 
 void Librarian::gatherActiveProcesses() {
-	cout<<"Gather MPC Array size:"<<mpcArray.size()<<endl;
+	//cout<<"Gather MPC Array size:"<<mpcArray.size()<<endl;
 	for(int i = 0; i < (size-1); i++) {
 			MPI_Status status;
 			MPI_Recv(tempState, 2, MPI_INT, MPI_ANY_SOURCE, MSG_ACTIVE_TAG, MPI_COMM_WORLD, &status);
@@ -146,7 +151,7 @@ void Librarian::gatherActiveProcesses() {
 
 void Librarian::sendRequests() {
 	//rozsyłanie requestów
-	cout<<"sendRequests MPC Array size:"<<mpcArray.size()<<endl;
+	//cout<<"sendRequests MPC Array size:"<<mpcArray.size()<<endl;
 		for (int i = 0; i<this->size; i++){
 			if (i != this->id){
 				if(this->active && !this->engaged) { // jesli jest aktywny i niezaangazowany
@@ -170,13 +175,13 @@ void Librarian::canEnter() {
 			this->czyMogeWejsc = false;
 			break;
 		}
-		cout<<"Can enter MPC Array size:"<<mpcArray.size()<<endl;
+		//cout<<"Can enter MPC Array size:"<<mpcArray.size()<<endl;
 	}
 }
 
 void Librarian::waitForAnswears() {
 
-	cout<<"waitForAnswears MPC Array size:"<<mpcArray.size()<<endl;
+	//cout<<"waitForAnswears MPC Array size:"<<mpcArray.size()<<endl;
 	for (int i = 1; i < this->size; i++){ //oczekuje na size-1 odpowiedzi
 		MPI_Status status;
 		MPI_Recv(msg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -186,11 +191,10 @@ void Librarian::waitForAnswears() {
 
 bool Librarian::checkFreeMPC() {
 	//sprawdza czy istnieje wolny MPC
-	cout<<"checkFreeMPC MPC Array size:"<<mpcArray.size()<<endl;
+	mpcVector.resize(3);
+	//cout<<"checkFreeMPC MPC Array size:"<<mpcVector.size()<<endl;
 	for(int i = 0; i < 1; i++) {
-		printf("DUPA\n");
-		cout<<mpcArray.size()<<"\n";
-		if(!mpcArray[i].free) {
+		if(!mpcArray[i].isFree()) {
 			return false;
 		}
 	} 
@@ -203,28 +207,22 @@ void Librarian::updateMPCArray() {
 	int mpc[1];
 	mpc[0] = 4545;
 
-	for(int z = 0 ; z < 2; z++) {
-						//printf("Duza odbierajacego tablca[%d]: id=%d, free-%d, servedCustomers-%d\n", z, mpcArray[z].id, mpcArray[z].free, mpcArray[z].servedCustomers);
-					}
-
 	if(!this->engaged){
-	printf("Chce odebrac update %d\n", this->id);	
+	//printf("Chce odebrac update %d\n", this->id);	
 	MPI_Recv(mpc, 2, MPI_INT, MPI_ANY_SOURCE, SELECT_MPC_TAG, MPI_COMM_WORLD, &status);
-	printf("ODEBRAŁEM %d, mpc[0]= %d, mpc[1] = %d\n", this->id, mpc[0], mpc[1]);
+	//printf("ODEBRAŁEM %d, mpc[0]= %d, mpc[1] = %d\n", this->id, mpc[0], mpc[1]);
 	for(int i = 0; i < NUMB_OF_MPC; i++) {
-		if(mpcArray[i].id == mpc[0]) {
+		if(mpcArray[i].getId() == mpc[0]) {
 			if(mpc[1] == 1) {
-				printf("FALSE\n");
-				mpcArray[i].free = false;
+				mpcArray[i].setFree(false);
 			}
 			else if(mpc[1] == 0){
-				printf("TRUE\n");
-				mpcArray[i].free = true;
+				mpcArray[i].setFree(true);
 			}
 		}
 	}
 	for(int k = 0; k < NUMB_OF_MPC; k++) {
-		//printf("MPC ARRAY PO UPDATE: id-%d, free-%d, customers-%d\n", mpcArray[k].id, mpcArray[k].free, mpcArray[k].servedCustomers);
+		printf("MPC ARRAY PO UPDATE: id-%d, free-%d, customers-%d\n", mpcArray[k].getId(), mpcArray[k].isFree(), mpcArray[k].getServedCustomers());
 	}
 
 	}	
@@ -234,29 +232,21 @@ void Librarian::updateMPCArray() {
 
 
 void Librarian::selectMPC() {
-//zabieram MPC i powiadamiam innych
-	for(int i = 0; i <  NUMB_OF_MPC; i++) {
-		//printf("PRZED WYSŁANIEM MPC ARRAY[%d]: id=%d, free-%d, servedCustomers-%d\n", i, mpcArray[i].id, mpcArray[i].free, mpcArray[i].servedCustomers);
-	}
-	printf("Chce wejsc %d\n", this->id);	
+//zabieram MPC i powiadamiam innych	
 	for(int i = 0 ; i < NUMB_OF_MPC; i++) {
-		if(mpcArray[i].free) {
-			mpcArray[i].free = false;
+		if(mpcArray[i].isFree()) {
+			mpcArray[i].setFree(false);
 			this->engaged = true; //proces angazuje MPC
 			for(int j = 0; j < this->size; j++) {
 				if(j != this->id) {
 					int mpc[1]; //mpc[0] - id MPC, mpc[1] - jesli 1 to zajety, jesli 0 to zwolniony
-					for(int z = 0 ; z < 2; z++) {
-						//printf("Duza wysylajacego tablca[%d]: id=%d, free-%d, servedCustomers-%d\n", z, mpcArray[z].id, mpcArray[z].free, mpcArray[z].servedCustomers);
-					}
-					mpc[0] = mpcArray[i].id;
+					mpc[0] = mpcArray[i].getId();
 					mpc[1] = 1;
 					printf("Wysyłam %d, mpc[0] = %d, mpc[1] = %d\n", j, mpc[0], mpc[1]);
 					MPI_Send(mpc, 2, MPI_INT, j, SELECT_MPC_TAG, MPI_COMM_WORLD);
 				}
 			}
 		}
-		printf("IIIIIIIIIIIIIIIIIIII: %d----\n", i);
 		break;
 	}
 }
@@ -266,10 +256,8 @@ void Librarian::accessMPC() {
 	//dostêp do MPC
 
 	if (this->czyMogeWejsc){
-		printf("Moge wejsc %d\n", this->id);
 		bool freeMPC = checkFreeMPC();
 		if(freeMPC) {
-			printf("Są wolne MPC\n");
 			selectMPC();
 			printf("Wszedlem(%d)--------------------------------------\n", this->id);
 		}
