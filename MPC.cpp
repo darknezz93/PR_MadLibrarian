@@ -19,6 +19,7 @@ class MPC {
 	void setId(int id);
 	int getServedCustomers();
 	void setServedCustomers(int servedCustomers);
+	void addServedCustomers(int count);
 
 };
 
@@ -61,6 +62,10 @@ int MPC::getServedCustomers() {
 
 void MPC::setServedCustomers(int servedCustomers) {
 	this->servedCustomers = servedCustomers;
+}
+
+void MPC::addServedCustomers(int count) {
+	this->servedCustomers += count;
 }
 
 

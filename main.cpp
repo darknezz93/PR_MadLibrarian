@@ -34,14 +34,19 @@ int main(int argc, char **argv)
 	sleep(1);
 
 	
-	L1->notifyAboutActivity();
-	L1->gatherActiveProcesses();
-	L1->sendRequests();
-	L1->waitForAnswears();
-	L1->canEnter();
-	L1->accessMPC();
-	sleep(2);
-	L1->updateMPCArray(); 
+			L1->notifyAboutActivity();
+			L1->gatherActiveProcesses();
+	for(int i = 1 ; i < 3; i++) {
+			cout<<"Iteracja: "<<i<<"|||||||||||||||||||||||||||||||||||||"<<endl;
+			sleep(1);		
+			L1->sendRequests();
+			L1->waitForAnswears();
+			L1->canEnter();
+			L1->accessMPC();
+			L1->updateMPCArray();
+			sleep(2);
+	}	
+
 	
 	 
 	//thread updateMPCArray(&Librarian::updateMPCArray, L1);
@@ -49,10 +54,3 @@ int main(int argc, char **argv)
 
 	MPI::Finalize(); 
 }
-
-
-/* Na chuj ten wątek !??
-Porces najlepszy bierze MPC i po prostu powiadamia reszte ze wział,
-a one juz czekaja na to zeby odebrac tą informację,
-i pętla idzie od nowa.
-Wszystkie procesy wiedza kto jest w sekcji krytycznej i konkuruja miedzy soba o MPC, któ¶e zostały.*/

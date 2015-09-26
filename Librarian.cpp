@@ -35,13 +35,14 @@ class Librarian {
 	vector<int> activeLibrarians;
 	int tempState[2]; //tymczasowa zmienna okreslajaca czy proces wysylajacy wiadomosc jest aktywny tempState[0]-id procesu, temsState[1]-stan
 	bool engaged; //poczatkowo zeden librarian nie angazuje zadnego MPC
+	bool recentlyEngaged;
 	//vector<MPC>::iterator iterator;
  public:
 	Librarian(int id, int size);	
 	void sendRequests();
 	void canEnter();
 	void waitForAnswears();
-	void readAnswer(int id, int numOfReaders, int answer);
+	void readAnswer(int id, int numOfReaders, int answer, int engaged);
 	void accessMPC();
 	int getCustomersCount();
 	bool isActive();
@@ -71,6 +72,7 @@ Librarian::Librarian(int id, int size){
 	srand(time(0));
 	this->id = id;
 	this->size = size;
+	this->priorities[this->size];
 	this->customersCount = rand()%(id+1) + 7;
 	this->engaged = false;//poczatkowo nie angazuje zadnego MPC
 	for(int i  = 0; i < size; i++) {
@@ -92,11 +94,10 @@ Librarian::Librarian(int id, int size){
 		tempState[i] = 0;
 	}
 
-	//cout<<"mpcArray size: "<<mpcArray.size()<<endl;
-
 	this->msg[0] = id;
 	this->msg[1] = this->customersCount;
 	this->czyMogeWejsc = false;
+	this->recentlyEngaged = false; //potrzebne zeby wyslac update MPC array do wszystkich oprócz siebie gdy zabiera mpc-ka
 	this->active = rand()%(id+1);
 	if(this->active) {
 		this->priorities[id] = 1; //sam sobie zezwalam
@@ -140,26 +141,31 @@ void Librarian::gatherActiveProcesses() {
 			MPI_Recv(tempState, 2, MPI_INT, MPI_ANY_SOURCE, MSG_ACTIVE_TAG, MPI_COMM_WORLD, &status);
 			this->activeLibrarians.at(tempState[0]) = tempState[1];
 	}
-	//printf("Active librarians array dla (%d):", this->id);
 
-	for(int i = 0 ; i < size; i++) {
+	/*for(int i = 0 ; i < size; i++) {
 		printf(" %d ", this->activeLibrarians[i]);
 	}
-	printf("\n");
+	printf("\n\n\n"); */
 }
 
 
 void Librarian::sendRequests() {
 	//rozsyłanie requestów
-	//cout<<"sendRequests MPC Array size:"<<mpcArray.size()<<endl;
 		for (int i = 0; i<this->size; i++){
 			if (i != this->id){
 				if(this->active && !this->engaged) { // jesli jest aktywny i niezaangazowany
 					this->msg[2] = 200;
+					this->msg[4] = 0;
 					MPI_Send(msg, 3, MPI_INT, i, MSG_TAG, MPI_COMM_WORLD);	
+				}
+				else if(this->active && this->engaged) {
+					this->msg[2] = 200;
+					this->msg[4] = 900;
+					MPI_Send(msg, 3, MPI_INT, i, MSG_TAG, MPI_COMM_WORLD);
 				}
 				else {
 					this->msg[2] = 100;
+					this->msg[4] = 0;
 					MPI_Send(msg, 3, MPI_INT, i, MSG_TAG, MPI_COMM_WORLD);
 				}
 				
@@ -169,52 +175,58 @@ void Librarian::sendRequests() {
 
 void Librarian::canEnter() {
 	//sprawdzenie tablicy priorytetów
+	if(this->engaged || !this->active) {
+			this->priorities[this->id] = 0;
+		}
+	else{
+			this->priorities[this->id] = 1;
+	}
+	
 	this->czyMogeWejsc = true;
 	for (int i = 0; i < this->size; i++){
 		if (this->priorities[i] == 0){
 			this->czyMogeWejsc = false;
 			break;
 		}
-		//cout<<"Can enter MPC Array size:"<<mpcArray.size()<<endl;
 	}
 }
 
 void Librarian::waitForAnswears() {
-
-	//cout<<"waitForAnswears MPC Array size:"<<mpcArray.size()<<endl;
 	for (int i = 1; i < this->size; i++){ //oczekuje na size-1 odpowiedzi
 		MPI_Status status;
-		MPI_Recv(msg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		this->readAnswer(this->msg[0], this->msg[1], this->msg[2]);
+		MPI_Recv(msg, 3, MPI_INT, MPI_ANY_SOURCE, MSG_TAG, MPI_COMM_WORLD, &status);
+		this->readAnswer(this->msg[0], this->msg[1], this->msg[2], this->msg[4]);
 	}
 }
 
 bool Librarian::checkFreeMPC() {
 	//sprawdza czy istnieje wolny MPC
-	mpcVector.resize(3);
-	//cout<<"checkFreeMPC MPC Array size:"<<mpcVector.size()<<endl;
+	//mpcVector.resize(3);
+	bool free;
 	for(int i = 0; i < 1; i++) {
 		if(!mpcArray[i].isFree()) {
-			return false;
+			free = false;
+		}
+		else {
+			return true;
 		}
 	} 
-	printf("PRAWDA\n");
-	return true;
+	return free;
 }
 
 void Librarian::updateMPCArray() {
 	MPI_Status status;
-	int mpc[1];
-	mpc[0] = 4545;
+	int mpc[2];
 
-	if(!this->engaged){
+	if(!this->recentlyEngaged){
 	//printf("Chce odebrac update %d\n", this->id);	
-	MPI_Recv(mpc, 2, MPI_INT, MPI_ANY_SOURCE, SELECT_MPC_TAG, MPI_COMM_WORLD, &status);
+	MPI_Recv(mpc, 3, MPI_INT, MPI_ANY_SOURCE, SELECT_MPC_TAG, MPI_COMM_WORLD, &status);
 	//printf("ODEBRAŁEM %d, mpc[0]= %d, mpc[1] = %d\n", this->id, mpc[0], mpc[1]);
 	for(int i = 0; i < NUMB_OF_MPC; i++) {
 		if(mpcArray[i].getId() == mpc[0]) {
 			if(mpc[1] == 1) {
 				mpcArray[i].setFree(false);
+				mpcArray[i].addServedCustomers(mpc[2]);
 			}
 			else if(mpc[1] == 0){
 				mpcArray[i].setFree(true);
@@ -222,8 +234,9 @@ void Librarian::updateMPCArray() {
 		}
 	}
 	for(int k = 0; k < NUMB_OF_MPC; k++) {
-		printf("MPC ARRAY PO UPDATE: id-%d, free-%d, customers-%d\n", mpcArray[k].getId(), mpcArray[k].isFree(), mpcArray[k].getServedCustomers());
+		//printf("MPC ARRAY PO UPDATE: id-%d, free-%d, customers-%d\n", mpcArray[k].getId(), mpcArray[k].isFree(), mpcArray[k].getServedCustomers());
 	}
+	this->recentlyEngaged = false;
 
 	}	
 
@@ -237,24 +250,25 @@ void Librarian::selectMPC() {
 		if(mpcArray[i].isFree()) {
 			mpcArray[i].setFree(false);
 			this->engaged = true; //proces angazuje MPC
+			this->recentlyEngaged = true;
 			for(int j = 0; j < this->size; j++) {
 				if(j != this->id) {
-					int mpc[1]; //mpc[0] - id MPC, mpc[1] - jesli 1 to zajety, jesli 0 to zwolniony
+					int mpc[2]; //mpc[0] - id MPC, mpc[1] - jesli 1 to zajety, jesli 0 to zwolniony, mpc[2] - ilosc customers
 					mpc[0] = mpcArray[i].getId();
 					mpc[1] = 1;
-					printf("Wysyłam %d, mpc[0] = %d, mpc[1] = %d\n", j, mpc[0], mpc[1]);
-					MPI_Send(mpc, 2, MPI_INT, j, SELECT_MPC_TAG, MPI_COMM_WORLD);
+					mpc[2] = this->customersCount;
+					//printf("Wysyłam %d, mpc[0] = %d, mpc[1] = %d\n", j, mpc[0], mpc[1]);
+					MPI_Send(mpc, 3, MPI_INT, j, SELECT_MPC_TAG, MPI_COMM_WORLD);
 				}
 			}
+			break;
 		}
-		break;
 	}
 }
 
 
 void Librarian::accessMPC() {
 	//dostêp do MPC
-
 	if (this->czyMogeWejsc){
 		bool freeMPC = checkFreeMPC();
 		if(freeMPC) {
@@ -274,8 +288,7 @@ void Librarian::accessMPC() {
 
 
 
-void Librarian::readAnswer(int id, int numbOfReaders, int answer){ 
-	//printf("Metoda ReadAnswer()\n");
+void Librarian::readAnswer(int id, int numbOfReaders, int answer, int engaged){ 
 	//printf("(%d | %d)Odpowiedz od: %d | %d | %d\n", this->id, this->customersCount, id, numbOfReaders, answer);
 	if (answer == 100){ // 100 - kod dla odpowiedzi "agree"
 		this->priorities[id] = 2; //2 - wartosc dla odpowiedzi "agree"
