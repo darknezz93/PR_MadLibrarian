@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <unistd.h>
 #include "Librarian.cpp"
-//#include <thread>
+#include <thread>
 #define ROOT 0
 #define MSG_TAG 100
 
@@ -36,20 +36,20 @@ int main(int argc, char **argv)
 	
 			L1->notifyAboutActivity();
 			L1->gatherActiveProcesses();
-	for(int i = 1 ; i < 3; i++) {
-			cout<<"Iteracja: "<<i<<"|||||||||||||||||||||||||||||||||||||"<<endl;
-			sleep(1);		
-			L1->sendRequests();
-			L1->waitForAnswears();
-			L1->canEnter();
-			L1->accessMPC();
-			L1->updateMPCArray();
-			sleep(2);
-	}	
 
+			//thread updateMPC(&Librarian::waitForMPCUpdate, L1);
+			for(int i = 1 ; i < 4; i++) {
+				printf("Iteracja: %d ||||||||||||||||||||||||||||||||||||||\n", i);
+				sleep(1);		
+				L1->sendRequests();
+				L1->waitForAnswears();
+				L1->canEnter();
+				L1->accessMPC();
+				L1->updateMPCArray();
+				sleep(2);
+			}	
 	
 	 
-	//thread updateMPCArray(&Librarian::updateMPCArray, L1);
 	//updateMPCArray.join();
 
 	MPI::Finalize(); 

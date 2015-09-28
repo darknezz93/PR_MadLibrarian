@@ -9,6 +9,7 @@ class MPC {
   	int id;
 	bool free;
 	int servedCustomers;
+	int currentLibrarianId;
   public:	
 	MPC();
 	MPC(int id, bool free, int servedCustomers);
@@ -20,6 +21,8 @@ class MPC {
 	int getServedCustomers();
 	void setServedCustomers(int servedCustomers);
 	void addServedCustomers(int count);
+	void setCurrentLibrarianId(int id);
+	int getCurrentLibrarianId();
 
 };
 
@@ -31,6 +34,7 @@ MPC::MPC(int id, bool free, int servedCustomers){
 	this->id= id;
 	this->free = free;
 	this->servedCustomers = servedCustomers;
+	this->currentLibrarianId = 500000;
 }
 
 
@@ -66,6 +70,14 @@ void MPC::setServedCustomers(int servedCustomers) {
 
 void MPC::addServedCustomers(int count) {
 	this->servedCustomers += count;
+}
+
+void MPC::setCurrentLibrarianId(int id) {
+	this->currentLibrarianId = id;
+}
+
+int MPC::getCurrentLibrarianId() {
+	return this->currentLibrarianId;
 }
 
 
