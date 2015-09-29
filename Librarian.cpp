@@ -63,6 +63,8 @@ class Librarian {
 	void initializeMPCAccess();
 	bool checkMPCAccessArray();
 	void waitForMPCUpdate();
+	void releaseMPC();
+	void randomActivity();
 };
 
 int Librarian::getCustomersCount() {
@@ -127,11 +129,11 @@ void Librarian::initializeMPCAccess() {
 
 bool Librarian::checkMPCAccessArray() {
 	for(int i = 0; i < this->size; i++) {
-		if(mpcAccess[i] == 0){
-			return false;
+		if(mpcAccess[i] == 1){
+			return true;
 		}
 	}
-	return true;
+	return false;
 }
 
 void Librarian::notifyAboutActivity() {
@@ -233,7 +235,7 @@ void Librarian::gatherMPCAccess() {
 void Librarian::waitForMPCUpdate() {
 	MPI_Status status;
 	int mpc[3];
-	//while(1) {
+	while(1) {
 		MPI_Recv(mpc, 4, MPI_INT, MPI_ANY_SOURCE, UPDATE_MPC_TAG, MPI_COMM_WORLD, &status);
 		for(int i = 0; i < NUMB_OF_MPC; i++) {
 				if(mpcArray[i].getId() == mpc[0]) {
@@ -247,7 +249,7 @@ void Librarian::waitForMPCUpdate() {
 					}
 				}
 		}
-	//}
+	}
 }
 
 
@@ -287,18 +289,53 @@ void Librarian::selectMPC() {
 			this->engaged = true; //proces angazuje MPC
 			this->recentlyEngaged = true;
 			this->mpcAccess[this->id] = 1;
-			for(int j = 0; j < this->size; j++) {
+			/*for(int j = 0; j < this->size; j++) {
 				if(j != this->id) {
 					int mpc[3]; //mpc[0] - id MPC, mpc[1] - jesli 1 to zajety, jesli 0 to zwolniony, mpc[2] - ilosc customers
 					mpc[0] = mpcArray[i].getId();
 					mpc[1] = 1;
-					mpc[2] = this->customersCount;
+					mpc[2] = this->customersCount; // ile musi dodac odbiorca
 					mpc[3] = this->id;
 					MPI_Send(mpc, 4, MPI_INT, j, SELECT_MPC_TAG, MPI_COMM_WORLD);
 				}
-			}
+			}*/
 			break;
 		}
+	}
+}
+
+void Librarian::releaseMPC() {
+	int mpc[3]; //mpc[0] - id MPC, mpc[1] - jesli 1 to zajety, jesli 0 to zwolniony, mpc[2] - ilosc customers
+
+	if(this->engaged) {
+		for(int i = 0; i < NUMB_OF_MPC; i++) {
+			if(mpcArray[i].getCurrentLibrarianId() == this->id) {
+				srand(time(0));
+				bool releaseMPC = rand()%(this->id+1);
+				if(releaseMPC) {
+					this->engaged = false;
+					mpcArray[i].setFree(true);
+					mpcArray[i].setCurrentLibrarianId(-1);
+					printf("PRZED WYLOSOWANIEM: %d\n", this->customersCount);
+					this->customersCount = rand()%(id+1) + 10;
+					mpc[1] = 0;
+					printf("ZWALNIAM MPC: %d\n", this->id);
+					printf("WYLOSOWAŁEM: %d\n", this->customersCount);
+				}
+				else {
+					mpc[1] = 1;
+				}
+				for(int j = 0; j < this->size; j++) {
+					if(j != this->id) {
+						mpc[0] = mpcArray[i].getId();
+						//mpc[1] = 1;
+						mpc[2] = this->customersCount; // ile musi dodac odbiorca
+						mpc[3] = this->id;
+						MPI_Send(mpc, 4, MPI_INT, j, SELECT_MPC_TAG, MPI_COMM_WORLD);
+					}
+			  	}
+			}
+ 		}
 	}
 }
 
@@ -320,7 +357,8 @@ void Librarian::accessMPC() {
 	{
 		printf(" %d", this->priorities[i]);
 	}
-	cout<<endl;
+	printf("\n");
+
 	notifyAboutMPCAccess();
 	gatherMPCAccess();
 }
@@ -362,6 +400,12 @@ void Librarian::sendRequests() {
 		}
 }
 
+void Librarian::randomActivity() {
+	if(!this->engaged) {
+		this->active = rand()%(id+1);
+	}
+}
+
 void Librarian::readAnswer(int id, int numbOfReaders, int answer){ 
 	//printf("(%d | %d)Odpowiedz od: %d | %d | %d\n", this->id, this->customersCount, id, numbOfReaders, answer);
 	if (answer == 100){ // 100 - kod dla odpowiedzi "agree"
@@ -373,15 +417,19 @@ void Librarian::readAnswer(int id, int numbOfReaders, int answer){
 		return;
 	}
 	if(answer == 200 && (numbOfReaders > this->customersCount)){
-		this->priorities[id] = 1; // 0 - brak zezwolenia (przegrana walka)
+		this->priorities[id] = 1; // 1 - zezwolenie (wygrana walka)
 		return;
 	}
 	if(answer == 200 && (numbOfReaders < this->customersCount)){
-		this->priorities[id] = 0; //1 - zezwolenie (wygrana walka)
+		this->priorities[id] = 0; //0 - brak zezwolenia (przegrana walka)
 		return;
 	}
 	else if(answer == 200 && numbOfReaders == this->customersCount && id >= this->id){
 		this->priorities[id] = 1;
+		return;
+	}
+	else if(answer == 200 && numbOfReaders == this->customersCount && id < this->id) {
+		this->priorities[id] = 0;
 		return;
 	}
 }

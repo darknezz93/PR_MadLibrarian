@@ -34,7 +34,7 @@ MPC::MPC(int id, bool free, int servedCustomers){
 	this->id= id;
 	this->free = free;
 	this->servedCustomers = servedCustomers;
-	this->currentLibrarianId = 500000;
+	this->currentLibrarianId = -1;
 }
 
 
