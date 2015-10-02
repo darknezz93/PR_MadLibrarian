@@ -10,6 +10,7 @@ class MPC {
 	bool free;
 	int servedCustomers;
 	int currentLibrarianId;
+	int limit;
   public:	
 	MPC();
 	MPC(int id, bool free, int servedCustomers);
@@ -23,7 +24,6 @@ class MPC {
 	void addServedCustomers(int count);
 	void setCurrentLibrarianId(int id);
 	int getCurrentLibrarianId();
-
 };
 
 MPC::MPC() {

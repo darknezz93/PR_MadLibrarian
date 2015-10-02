@@ -11,17 +11,52 @@ using namespace std;
 
 class Technician {
 
-  public:
+  private:
   	int id;
 	bool free;
-	int capacity;
-	
-	Technician(int id);
+	int currentLibrarianId;
+
+  public:		
+	Technician(int id, bool free, int currentLibrarianId);
+	Technician();
+	int getId();
+	bool isFree();
+	void setFree(bool free);
+	int getCurrentLibrarianId();
+	void setCurrentLibrarianId(int id);
 };
 
-Technician::Technician(int id) {
-	this->id = id;
-	this->free = true;
-	this->capacity = rand()%(id+30) + 7;
+Technician::Technician() {
+
 }
+
+Technician::Technician(int id, bool free, int currentLibrarianId) {
+	this->id = id;
+	this->free = free;
+	this->currentLibrarianId = currentLibrarianId;
+}
+
+int Technician::getId() {
+	return this->id;
+}
+
+bool Technician::isFree() {
+	if(this->free) {
+		return true;
+	}
+	return false;
+}
+
+void Technician::setFree(bool free) {
+	this->free = free;
+}
+
+int Technician::getCurrentLibrarianId() {
+	return this->currentLibrarianId;
+}
+
+void Technician::setCurrentLibrarianId(int id) {
+	this->currentLibrarianId = id;
+}
+
 
