@@ -142,7 +142,7 @@ Librarian::Librarian(int id, int size){
 	this->czyMogeWejsc = false;
 	this->recentlyEngaged = false; //potrzebne zeby wyslac update MPC array do wszystkich oprócz siebie gdy zabiera mpc-ka
 	this->recentlyTechnician = false;
-	this->active = rand()%(id+1);
+	this->active = rand()%(2);
 	if(this->active) {
 		this->priorities[id] = 1; //sam sobie zezwalam
 	}
@@ -342,8 +342,8 @@ void Librarian::releaseMPC() {
 	if(this->engaged && !this->waitingForTechnician && !this->usingTechnician) {
 		for(int i = 0; i < NUMB_OF_MPC; i++) {
 			if(mpcArray[i].getCurrentLibrarianId() == this->id) {
-				srand(time(0));
-				bool releaseMPC = rand()%(this->id+1);
+				//srand(time(0));
+				bool releaseMPC = rand()%(2);
 				if(releaseMPC) {
 					this->engaged = false;
 					mpcArray[i].setFree(true);
@@ -399,8 +399,8 @@ void Librarian::releaseTechnicianAndMPC() {
 	if(this->usingTechnician) {
 		for(int i = 0; i < NUMB_OF_TECHNICIANS; i++) {
 			if(this->technicianArray[i].getCurrentLibrarianId() == this->id) {
-				srand(time(0));
-				bool releaseTechnician = rand()%(1+1);
+				//srand(time(0));
+				bool releaseTechnician = rand()%(2);
 
 				if(releaseTechnician && recentlyTechnician) {
 					//Zwalniam i w tej iteracji brałem serwisanta
@@ -904,15 +904,19 @@ void Librarian::readAnswer(int id, int numbOfReaders, int answer){
 		this->priorities[id] = 0;
 		return;
 	}
-	if(answer == 600 && !this->waitingForTechnician) {
+	else if(answer == 600 && !this->waitingForTechnician) {
 		this->priorities[id] = 0;
 		return;
 	}
-	if(answer == 200 && (numbOfReaders > this->customersCount)){
+	if(answer == 200 && this->waitingForTechnician) {
+		this->priorities[id] = 1;
+		return;
+	}
+	else if(answer == 200 && (numbOfReaders > this->customersCount)){
 		this->priorities[id] = 1; // 1 - zezwolenie (wygrana walka)
 		return;
 	}
-	if(answer == 200 && (numbOfReaders < this->customersCount)){
+	else if(answer == 200 && (numbOfReaders < this->customersCount)){
 		this->priorities[id] = 0; //0 - brak zezwolenia (przegrana walka)
 		return;
 	}
